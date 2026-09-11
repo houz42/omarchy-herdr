@@ -257,12 +257,12 @@ window_map() {
     args_of[$pid]=$args
   done < <(ps -eo pid=,args= 2>/dev/null | grep -E 'her[d]r')
 
-  declare -A seen=()
+  declare -A emitted=()
 
   emit() {
     local target="$1" session="$2" window="$3"
-    [[ -n ${seen[$target/$session]-} ]] && return 0
-    seen[$target/$session]=1
+    [[ -n ${emitted[$target/$session]-} ]] && return 0
+    emitted[$target/$session]=1
     printf '%s\t%s\t%s\n' "$target" "$session" "$window"
   }
 
@@ -283,14 +283,19 @@ window_map() {
     local i j name target
     for ((i = 0; i < ${#words[@]}; i++)); do
       [[ ${words[i]##*/} == herdr ]] || continue
-      # `herdr server` is the background process, not a window's client.
-      [[ ${words[i + 1]-} == server ]] && return 1
+      # A window's client carries flags and nothing else: `herdr`,
+      # `herdr --session <name>`, `herdr --remote <target> [--session <n>]`.
+      # Any other bare word is a subcommand - `server`, the `client` helper a
+      # --remote attach forks, a one-shot CLI call like `api snapshot` run
+      # from a pane - and none of those say which window shows a session.
       name=default
       target=""
       for ((j = i + 1; j < ${#words[@]}; j++)); do
         case ${words[j]} in
-          --session) name=${words[j + 1]-} ;;
-          --remote) target=${words[j + 1]-} ;;
+          --session) name=${words[j + 1]-}; j=$((j + 1)) ;;
+          --remote) target=${words[j + 1]-}; j=$((j + 1)) ;;
+          -*) ;;
+          *) return 1 ;;
         esac
       done
       valid_session_name "$name" || return 1
