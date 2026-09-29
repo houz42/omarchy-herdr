@@ -580,10 +580,13 @@ Panel {
   }
 
   // "default" is herdr's own name for the shared session, and it reads as a
-  // setting rather than a place. A numbered one is a Hyprland workspace,
-  // which is worth saying out loud.
+  // setting rather than a place. On another machine herdr names that session
+  // after the machine, so the panel does too. A numbered one is a Hyprland
+  // workspace, which is worth saying out loud.
   function sessionLabel(session) {
     if (!session) return ""
+    if (session.isDefault && session.remote === true)
+      return session.machineLabel || session.sshTarget || session.name
     if (session.isDefault) return "Shared session"
     if (/^[0-9]+$/.test(session.name)) return "Workspace " + session.name
     return session.name
@@ -596,6 +599,8 @@ Panel {
   // row is exactly when there is something to distinguish.
   function machineName(session) {
     if (!session || session.remote !== true) return ""
+    // The shared session on a machine already carries its name.
+    if (session.isDefault) return ""
     return session.machineLabel || session.sshTarget || ""
   }
 
