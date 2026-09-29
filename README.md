@@ -124,30 +124,30 @@ Position, size and screen are kept in this widget's own entry in `~/.config/omar
 ## Remote machines
 
 Saved SSH machines (`herdr machine list`) are part of the herd. Every enabled
-machine is asked for its sessions over ssh, and its agents count toward the
-badge exactly like local ones - a blocked agent on another host turns the
-badge red the same as one in front of you. A remote row carries its machine's
-label in front of the session name, dimmed.
+machine is asked for its session over herdr's own command routing -
+`herdr --machine <id> api snapshot`, which runs the call on the session the
+machine's profile points at - and its agents count toward the badge exactly
+like local ones: a blocked agent on another host turns the badge red the same
+as one in front of you. A remote row carries its machine's label in front of
+the session name, dimmed.
 
 - **Click** opens it the way herdr does: a terminal running
   `herdr --remote <target> --session <name>`. Clicking an agent line focuses
-  its pane on the remote host first, over ssh, and then brings the window up.
-- **A machine that cannot answer says so**, as an `unreachable` line under
-  the header, rather than vanishing with all its rows. The widget never
-  answers an ssh prompt: host-key approval, passwords and passphrases are
-  settled interactively beforehand - running `herdr --remote <target>` once
-  in a terminal is enough - the same rule herdr's own background connections
-  follow.
+  its pane on the remote host first, over `herdr --machine <id> agent focus`,
+  and then brings the window up.
+- **A machine that cannot answer says so**, as a line under the header
+  carrying herdr's own reason, rather than vanishing with all its rows.
+  Host-key approval, passwords and passphrases are settled interactively
+  beforehand - running `herdr --remote <target>` once in a terminal is
+  enough - the same rule herdr's own background connections follow.
 - **Killing and deleting stay local.** Ending something on another machine
   from a bar widget is a way to lose work you cannot see, so remote rows do
   not offer the skull or the bin.
 
-Nothing is installed on the far end: the same script that runs locally is
-piped over ssh and answers for that machine, which needs only `herdr`, `jq`
-and `bash`. Re-polling reuses a kept-alive ssh connection, so a panel that
-asks every few seconds does not pay for a handshake each time. Only machines
-from herdr's own catalog are ever dialed, and a disabled machine is left
-alone, the same as in herdr's UI.
+Both ends need herdr 0.9.1 or newer: `--machine` routing is what carries the
+call, and anything older simply gets no remote rows. Only machines from
+herdr's own catalog are ever asked, and a disabled machine is left alone, the
+same as in herdr's UI.
 
 ## Screenshots
 
@@ -180,8 +180,9 @@ session with the window showing it; without Hyprland the list still works, but
 every session looks like it has no window and a click opens a new one. `ss`
 (from iproute2) is what the skull button uses to find the process behind a
 session's socket, and a window is opened in `foot`, falling back to
-`xdg-terminal-exec`. Listing saved SSH machines additionally needs `ssh`, and
-each such machine needs `herdr` and `jq` installed on it.
+`xdg-terminal-exec`. Listing saved SSH machines needs herdr 0.9.1 or newer on
+both this machine and each of them; an older far end shows up with herdr's
+own error as its reason.
 
 ## Theme colours
 
